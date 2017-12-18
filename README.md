@@ -1,0 +1,1 @@
+# Calissification_Prediction_Bankruptcy_Polish_Companies
