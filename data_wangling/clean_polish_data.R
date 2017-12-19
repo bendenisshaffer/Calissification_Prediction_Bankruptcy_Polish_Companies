@@ -35,4 +35,4 @@ clean_polish_dt$class = as.integer(clean_polish_dt$class)
 clean_polish_dt$year = as.integer(clean_polish_dt$year)
 
 
-write.csv(clean_polish_dt, "data/clean/clean_polish_dt.csv")
+write.csv(clean_polish_dt, "data/clean/clean_polish_dt.csv", row.names = FALSE)
