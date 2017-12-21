@@ -1,9 +1,10 @@
 require(dplyr)
+require(caTools)
 
 PCA_polish_data = read.csv("data/clean/pca_polish_dt.csv")
 
-data_sp = PCA_polish_data %>% group_by(year) # group them by year / we are using the cleaned file after imputation!!
 
+data_sp = PCA_polish_data %>% group_by(year) # group them by year / we are using the cleaned file after imputation !!
 data_sp$rownumber = 1:nrow(data_sp) # an indicator column for each row to check if the split worked fine
 
 set.seed(123) 

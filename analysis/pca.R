@@ -8,7 +8,7 @@ vd = data.frame(Var = var, PC = 1:49)
 ggplot_PCs = ggplot(vd, aes(x = PC, y = Var)) + geom_line() +
         geom_col(aes(fill = -Var)) +
         labs(title = "Percentage of Variance Explained by PC's", x =" Principal Component ", y = "Variance")+
-        theme_dark()+ scale_fill_continuous(name = "% of Variance \n explained")+xlim(0,40)
+        theme_economist()+ scale_fill_continuous(name = "% of Variance \n explained")+xlim(0,40)
 
 save(pca, file = "saved_output/objects/pca.RData")
 ggsave("saved_output/plots/pac_plot.png", ggplot_PCs, device = "png")

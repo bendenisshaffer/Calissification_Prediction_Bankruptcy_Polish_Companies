@@ -1,14 +1,14 @@
-require(kernlab)
 require(parallel)
 require(ggthemes)
-require(gridExtra)
+require(ggplot2)
 
 train = read.csv("data/clean/train.csv")
 test = read.csv("data/clean/test.csv")
 
-train = train[,c(1:7)]
-test = test[,c(1:7)]
-
+train$year = as.factor(train$year)
+train$class = as.factor(train$class)
+test$year = as.factor(test$year)
+test$class = as.factor(test$class)
 
 cost = c(1,2,4,6,8,10,12,14,16)  #define list of tuning parameters
 
@@ -22,28 +22,34 @@ fit_svm = function(cost){
         return(gaussian_ksvm)
 }
 
+#apply the funciton to the list of parameters in parallel
 gaussian_svm = mclapply(cost, fit_svm)
+
 
 save(gaussian_svm, file = "saved_output/objects/gaussian_svm.RData")
 
-
+#function that computes the train error tables
 gaussian_svm_tb_train = function(model){
         pred_pca_ksvm = predict(model, train[,-7])
         tb = table(pred_pca_ksvm, train[,7])
         return(tb)
 }
 
+#train error tables
+train_confusion_svm = mclapply(gaussian_svm, gaussian_svm_tb_train) 
+
+#function that computes the test error tables
 gaussian_svm_tb_test = function(model){
         pred_pca_ksvm = predict(model, test[,-7])
         tb = table(pred_pca_ksvm, test[,7])
         return(tb)
 }
 
+#test error tables
+test_confusion_svm = mclapply(gaussian_svm, gaussian_svm_tb_test) 
 
-train_confusion_svm = mclapply(gaussian_svm, gaussian_svm_tb_train)
-test_confusion_svm = mclapply(gaussian_svm, gaussian_svm_tb_test)
 
-
+#SVM plot of FPR
 gaussian_testing_FPR_svm = sapply(test_confusion_svm, function(x) 1 -  x[2,2]/(x[2,1]+x[2,2]))
 gaussian_training_FPR_svm = sapply(train_confusion_svm, function(x) 1 - x[2,2]/(x[2,1]+x[2,2]))
 
@@ -58,6 +64,8 @@ g1 = ggplot(df_svm_FPR, aes(x = Cost, y = Error, color = Set)) +
                                          legend.direction = "vertical",
                                          legend.title = element_blank())+scale_color_colorblind()
 
+
+#SVM plot of FNR
 gaussian_testing_FNR_svm = sapply(test_confusion_svm, function(x) x[1,2]/(x[1,1]+x[1,2]))
 gaussian_training_FNR_svm = sapply(train_confusion_svm, function(x) x[1,2]/(x[1,1]+x[1,2]))
 
@@ -72,6 +80,9 @@ g2 = ggplot(df_svm_FNR, aes(x = Cost, y = Error, color = Set)) +
                                          legend.direction = "vertical",
                                          legend.title = element_blank())+scale_color_colorblind()
 
+
+
+### CV error and mean error
 
 gaussian_cv_error = sapply(gaussian_svm, function(x) x@cross)
 gaussian_mean_error_train = sapply(gaussian_svm, function(x) x@error)
@@ -88,4 +99,9 @@ g3 = ggplot(df_svm_cv_mean, aes(x = Cost, y = Error, color = Type)) +
                                          legend.direction = "vertical",
                                          legend.title = element_blank())+scale_color_colorblind()
 
-grid.arrange(g1,g2,g3, ncol = 3, nrow = 1)
+require(gridExtra)
+
+ggg = grid.arrange(g1,g2,g3, ncol = 3, nrow = 1)
+
+ggsave("saved_output/plots/gaussian_svm.png", plot = ggg, device = "png")
+
